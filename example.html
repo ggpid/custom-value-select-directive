@@ -1,0 +1,56 @@
+<html>
+  <header>
+    <script  type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+    <script>
+      angular.module('components', []).directive('displayCustomValueIf', function displayCustomValueIf(){ 
+        return {
+          require: ['ngModel'],
+          scope: {
+            customValue: '=',
+            displayCustomValueIf: '=',
+          },
+          priority:2,
+          link: function(scope, element, attrs, ctrls) {
+            let ctrlScope = element.scope();
+            var ngModelCtrl = ctrls[0];
+            var fRender = angular.copy(ngModelCtrl.$render);
+            var fsetViewValue = angular.copy(ngModelCtrl.$setViewValue);
+            ngModelCtrl.$setViewValue = function(value, trigger) {
+              if(!scope.displayCustomValueIf || value != scope.customValue){
+                fsetViewValue(value, trigger);
+              }
+            };
+            ngModelCtrl.$render = function() {
+              if(scope.displayCustomValueIf){
+                ngModelCtrl.$viewValue =scope.customValue;
+                fRender();
+              } else {
+                fRender();
+              }
+            }
+          }
+        };
+      })
+      
+      angular.module('App', ['components']).controller('myctrl', ['$scope', function($scope) {
+          $scope.model = 'Candidate 1';
+          $scope.options = ['Candidate 1','Candidate 2','Custom Value'];
+      
+      }]);
+      </script>
+  </header>
+  <body>
+    <div ng-app='App' ng-controller='myctrl'>
+      INPUT : <select                        
+        display-custom-value-if="model == 'Custom Value' || !options.includes(model)"
+        custom-value="'Custom Value'"
+        ng-model="model">
+        <option ng-repeat="option in options" value="{{option}}">{{option}}</option> 
+      </select> 
+      <input type="text" ng-model="model" ng-show="model == 'Custom Value' || !options.includes(model)">
+      <br>
+      MODEL : {{model}}
+    <div>
+  </body>
+</html>
+
